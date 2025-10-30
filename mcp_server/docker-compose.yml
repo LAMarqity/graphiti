@@ -44,7 +44,7 @@ services:
       - SEMAPHORE_LIMIT=${SEMAPHORE_LIMIT:-10}
     ports:
       - "8000:8000" # Expose the MCP server via HTTP for SSE transport
-    command: ["uv", "run", "graphiti_mcp_server.py", "--transport", "sse"]
+    command: ["sh", "-c", "uv run graphiti_mcp_server.py --transport sse --port ${PORT:-8000}"]
 
   falkordb:
     profiles: ["falkordb"]
@@ -87,7 +87,7 @@ services:
       - SEMAPHORE_LIMIT=${SEMAPHORE_LIMIT:-10}
     ports:
       - "8001:8001" # Expose the MCP server via HTTP for SSE transport
-    command: ["uv", "run", "graphiti_mcp_server.py", "--transport", "sse"]
+    command: ["sh", "-c", "uv run graphiti_mcp_server.py --transport sse --port ${PORT:-8000}"]
 
 volumes:
   neo4j_data:

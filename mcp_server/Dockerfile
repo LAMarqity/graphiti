@@ -39,22 +39,5 @@ COPY graphiti_mcp_server.py ./
 # Expose port
 EXPOSE $PORT
 
-# Command to run the application
-CMD ["uv", "run", "graphiti_mcp_server.py"]
-```
-
-**3. Dina Environment Variables i Railway**
-
-Sätt dessa i Railway → Variables:
-```
-OPENAI_API_KEY=din-nyckel
-NEO4J_URI=bolt://din-neo4j-url:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=ditt-lösenord
-PORT=8000
-```
-
-Om du använder FalkorDB istället för Neo4j:
-```
-FALKORDB_HOST=din-falkordb-host
-FALKORDB_PORT=6379
+# Command to run the application with Railway PORT support
+CMD ["sh", "-c", "uv run graphiti_mcp_server.py --transport sse --port ${PORT:-8000}"]
