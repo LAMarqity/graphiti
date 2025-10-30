@@ -8,12 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv using the installer script
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
+# Create non-root user EARLY
+RUN groupadd -r app && useradd -r -d /app -g app app
 
-# Add uv to PATH
-ENV PATH="/root/.local/bin:${PATH}"
+# Install uv using the installer script as app user
+USER app
+ADD --chown=app:app https://astral.sh/uv/install.sh /tmp/uv-installer.sh
+RUN sh /tmp/uv-installer.sh && rm /tmp/uv-installer.sh
+
+# Add uv to PATH for app user
+ENV PATH="/app/.local/bin:${PATH}"
 
 # Configure uv for optimal Docker usage
 ENV UV_COMPILE_BYTECODE=1 \
@@ -22,11 +26,8 @@ ENV UV_COMPILE_BYTECODE=1 \
     MCP_SERVER_HOST="0.0.0.0" \
     PYTHONUNBUFFERED=1
 
-# Create non-root user
-RUN groupadd -r app && useradd -r -d /app -g app app
-
 # Copy project files for dependency installation (better caching)
-COPY pyproject.toml uv.lock ./
+COPY --chown=app:app pyproject.toml uv.lock ./
 
 # Install dependencies first (better layer caching)
 ARG INSTALL_FALKORDB=false
@@ -37,13 +38,7 @@ RUN if [ "$INSTALL_FALKORDB" = "true" ]; then \
     fi
 
 # Copy application code
-COPY graphiti_mcp_server.py ./
-
-# Change ownership to app user
-RUN chown -Rv app:app /app
-
-# Switch to non-root user
-USER app
+COPY --chown=app:app graphiti_mcp_server.py ./
 
 # Expose port
 EXPOSE $PORT
