@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1.9
 FROM python:3.12-slim
-
 WORKDIR /app
 
 # Install system dependencies
@@ -31,8 +30,7 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies first (better layer caching)
 ARG INSTALL_FALKORDB=false
-RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
-    if [ "$INSTALL_FALKORDB" = "true" ]; then \
+RUN if [ "$INSTALL_FALKORDB" = "true" ]; then \
         uv sync --frozen --no-dev --extra falkordb; \
     else \
         uv sync --frozen --no-dev; \
