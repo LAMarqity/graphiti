@@ -8,16 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user EARLY
-RUN groupadd -r app && useradd -r -d /app -g app app
+# Install uv using the installer script
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-# Install uv using the installer script as app user
-USER app
-ADD --chown=app:app https://astral.sh/uv/install.sh /tmp/uv-installer.sh
-RUN sh /tmp/uv-installer.sh && rm /tmp/uv-installer.sh
-
-# Add uv to PATH for app user
-ENV PATH="/app/.local/bin:${PATH}"
+# Add uv to PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Configure uv for optimal Docker usage
 ENV UV_COMPILE_BYTECODE=1 \
@@ -27,7 +23,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # Copy project files for dependency installation (better caching)
-COPY --chown=app:app pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock ./
 
 # Install dependencies first (better layer caching)
 ARG INSTALL_FALKORDB=false
@@ -38,10 +34,27 @@ RUN if [ "$INSTALL_FALKORDB" = "true" ]; then \
     fi
 
 # Copy application code
-COPY --chown=app:app graphiti_mcp_server.py ./
+COPY graphiti_mcp_server.py ./
 
 # Expose port
 EXPOSE $PORT
 
 # Command to run the application
 CMD ["uv", "run", "graphiti_mcp_server.py"]
+```
+
+**3. Dina Environment Variables i Railway**
+
+Sätt dessa i Railway → Variables:
+```
+OPENAI_API_KEY=din-nyckel
+NEO4J_URI=bolt://din-neo4j-url:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=ditt-lösenord
+PORT=8000
+```
+
+Om du använder FalkorDB istället för Neo4j:
+```
+FALKORDB_HOST=din-falkordb-host
+FALKORDB_PORT=6379
