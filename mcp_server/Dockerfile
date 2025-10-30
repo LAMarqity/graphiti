@@ -31,7 +31,7 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies first (better layer caching)
 ARG INSTALL_FALKORDB=false
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
     if [ "$INSTALL_FALKORDB" = "true" ]; then \
         uv sync --frozen --no-dev --extra falkordb; \
     else \
