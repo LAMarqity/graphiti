@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
 # Command to run with SSE transport (not http!) and Neo4j database
-CMD ["sh", "-c", "uv run graphiti_mcp_server.py --database-type neo4j --transport sse --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uv run graphiti_mcp_server.py --database-type falkordb --transport sse --host 0.0.0.0 --port ${PORT:-8000}"]
