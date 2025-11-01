@@ -26,8 +26,8 @@ ENV UV_COMPILE_BYTECODE=1 \
 # Copy project files for dependency installation (better caching)
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies with providers extra for Neo4j and other LLM providers
-RUN uv sync --frozen --no-dev --extra providers
+# Install dependencies (without extra providers since it's not defined)
+RUN uv sync --frozen --no-dev
 
 # Copy application code
 COPY graphiti_mcp_server.py ./
