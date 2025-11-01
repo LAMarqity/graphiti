@@ -31,11 +31,9 @@ RUN uv sync --frozen --no-dev --extra providers
 
 # Copy application code
 COPY graphiti_mcp_server.py ./
-COPY config.yaml* ./
-COPY config/ config/ 2>/dev/null || true
 
 # Expose port
-EXPOSE $PORT
+EXPOSE 8000
 
 # Healthcheck for Railway
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
