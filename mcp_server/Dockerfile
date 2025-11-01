@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1.9
 FROM python:3.12-slim
+
 WORKDIR /app
 
 # Install system dependencies
@@ -25,19 +26,20 @@ ENV UV_COMPILE_BYTECODE=1 \
 # Copy project files for dependency installation (better caching)
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies first (better layer caching)
-ARG INSTALL_FALKORDB=false
-RUN if [ "$INSTALL_FALKORDB" = "true" ]; then \
-        uv sync --frozen --no-dev --extra falkordb; \
-    else \
-        uv sync --frozen --no-dev; \
-    fi
+# Install dependencies with providers extra for Neo4j and other LLM providers
+RUN uv sync --frozen --no-dev --extra providers
 
 # Copy application code
 COPY graphiti_mcp_server.py ./
+COPY config.yaml* ./
+COPY config/ config/ 2>/dev/null || true
 
 # Expose port
 EXPOSE $PORT
 
-# Command to run the application with Railway PORT support
-CMD ["sh", "-c", "uv run graphiti_mcp_server.py --transport sse --port ${PORT:-8000}"]
+# Healthcheck for Railway
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+
+# Command to run with Neo4j database provider
+CMD ["sh", "-c", "uv run graphiti_mcp_server.py --database-provider neo4j --transport http --port ${PORT:-8000}"]
